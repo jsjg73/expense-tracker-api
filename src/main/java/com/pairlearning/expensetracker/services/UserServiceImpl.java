@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Service
@@ -17,7 +18,8 @@ public class UserServiceImpl implements UserService{
     UserRepository userRepository;
     @Override
     public User validateUser(String email, String password) throws EtAuthException {
-        return null;
+        if(!Objects.isNull(email))email = email.toLowerCase();
+        return userRepository.findByEmailAndPassword(email, password);
     }
 
     @Override
