@@ -46,7 +46,7 @@ public class UserRepositoryImpl implements UserRepository{
         try{
             User user = jdbcTemplate.queryForObject(SQL_FIND_BY_EMAIL, new Object[]{email}, userRowMapper);
             if(!password.equals(user.getPassword()))
-                throw new EtAuthException("Invalid email/password");
+                throw new EtAuthException("Wrong password");
             return user;
         }catch (EmptyResultDataAccessException e){
             throw new EtAuthException("Invalid email/password");
