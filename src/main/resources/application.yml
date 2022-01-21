@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    initialization-mode: always
+    schema: classpath:expensetracker-schema.sql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: "jdbc:mysql://localhost:3306/expensetracker?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC"
+    username: jsjg73
+    password: jsjg73
