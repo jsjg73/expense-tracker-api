@@ -1,6 +1,8 @@
 package com.pairlearning.expensetracker;
 
+import com.jayway.jsonpath.JsonPath;
 import com.pairlearning.expensetracker.exceptions.EtAuthException;
+import com.pairlearning.expensetracker.resources.CategoryResource;
 import com.pairlearning.expensetracker.resources.UserResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
@@ -10,11 +12,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import javax.xml.transform.Result;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class ExpenseTrackerApiApplicationTests {
+	static String token;
 
 	@Autowired
 	public MockMvc mockMvc;
@@ -60,7 +62,7 @@ class ExpenseTrackerApiApplicationTests {
 	@Order(1)
 	@DisplayName("유저 등록 성공 테스트")
 	public void registerUser() throws Exception {
-		ResultActions result = mockMvc.perform(
+		ResultActions resultActions = mockMvc.perform(
 			MockMvcRequestBuilders
 				.post("/api/users/register")
 					.contentType(MediaType.APPLICATION_JSON)
@@ -70,12 +72,13 @@ class ExpenseTrackerApiApplicationTests {
 							"\"email\" : \"david@testmail.com\"," +
 							"\"password\" : \"test123\"}")
 		);
-
-		result.andDo(print())
+		MvcResult result = resultActions.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(handler().handlerType(UserResource.class))
 			.andExpect(handler().methodName("registerUser"))
-			.andExpect(jsonPath("$.message", is("registered successfully")));
+			.andReturn();
+
+		token = JsonPath.read(result.getResponse().getContentAsString(), "$.token");
 	}
 
 	@Test
@@ -138,11 +141,60 @@ class ExpenseTrackerApiApplicationTests {
 						.accept(MediaType.APPLICATION_JSON)
 						.content("{\"email\": \"david@testmail.com\",\"password\":\"test123\"}")
 		);
-
 		result.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(handler().handlerType(UserResource.class))
-				.andExpect(handler().methodName("loginUser"))
-				.andExpect(jsonPath("$.message", is("loggedIn successfully")));
+				.andExpect(handler().methodName("loginUser"));
+	}
+
+	@Test
+	@Order(6)
+	@DisplayName("카테고리 조회 실패(토큰 누락)")
+	public void getAllCategoriesFail1() throws Exception {
+		ResultActions resultActions = mockMvc.perform(
+				MockMvcRequestBuilders
+						.get("/api/categories")
+						.accept(MediaType.APPLICATION_JSON)
+
+		);
+		MvcResult mvcResult = resultActions.andDo(print())
+				.andExpect(status().is4xxClientError())
+				.andReturn();
+		assertEquals(mvcResult.getResponse().getErrorMessage(), "Authorization token must be provided");
+	}
+	@Test
+	@Order(7)
+	@DisplayName("카테고리 조회 실패(Bearer 누락)")
+	public void getAllCategoriesFail2() throws Exception {
+		ResultActions resultActions = mockMvc.perform(
+				MockMvcRequestBuilders
+						.get("/api/categories")
+						.accept(MediaType.APPLICATION_JSON)
+						.header("Authorization", token)
+
+		);
+		MvcResult mvcResult = resultActions.andDo(print())
+				.andExpect(status().is4xxClientError())
+				.andReturn();
+		assertEquals(mvcResult.getResponse().getErrorMessage(), "Authorization token must be Bearer [token]");
+	}
+
+	@Test
+	@Order(8)
+	@DisplayName("카테고리 조회 성공")
+	public void getAllCategories() throws Exception {
+		ResultActions resultActions = mockMvc.perform(
+				MockMvcRequestBuilders
+						.get("/api/categories")
+						.accept(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer "+token)
+
+		);
+		MvcResult mvcResult = resultActions.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(handler().handlerType(CategoryResource.class))
+				.andExpect(handler().methodName("getAllCategories"))
+				.andReturn();
+		assertEquals(mvcResult.getResponse().getContentAsString(), "Authenticated! UserId 1");
 	}
 }
