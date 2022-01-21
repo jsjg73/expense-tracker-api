@@ -1,7 +1,9 @@
 package com.pairlearning.expensetracker.repositories;
 
 import com.pairlearning.expensetracker.domain.User;
+import com.pairlearning.expensetracker.encrypt.EncryptHelper;
 import com.pairlearning.expensetracker.exceptions.EtAuthException;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,6 +26,7 @@ public class UserRepositoryImpl implements UserRepository{
 
     @Override
     public Integer create(String firstName, String lastName, String email, String password) throws EtAuthException {
+        String hashedPassword = EncryptHelper.encrypt(password);
         try{
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(connection->{
@@ -31,7 +34,7 @@ public class UserRepositoryImpl implements UserRepository{
                 ps.setString(1, firstName);
                 ps.setString(2, lastName);
                 ps.setString(3, email);
-                ps.setString(4, password);
+                ps.setString(4, hashedPassword);
                 return ps;
             }, keyHolder);
             return keyHolder.getKey().intValue();
@@ -43,9 +46,10 @@ public class UserRepositoryImpl implements UserRepository{
 
     @Override
     public User findByEmailAndPassword(String email, String password) throws EtAuthException {
+
         try{
             User user = jdbcTemplate.queryForObject(SQL_FIND_BY_EMAIL, new Object[]{email}, userRowMapper);
-            if(!password.equals(user.getPassword()))
+            if(!EncryptHelper.isMatch(password, user.getPassword()))
                 throw new EtAuthException("Wrong password");
             return user;
         }catch (EmptyResultDataAccessException e){
