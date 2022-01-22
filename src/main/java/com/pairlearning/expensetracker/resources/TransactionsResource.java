@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,10 +48,14 @@ public class TransactionsResource {
 
     @PutMapping("/{transactionId}")
     public ResponseEntity<Map<String, Boolean>> updateTransaction(HttpServletRequest request,
-                                                                @PathVariable("categoryId") Integer categoryId,
-                                                                @PathVariable("transactionId") Integer transactionId){
-        //TODO
-        return null;
+                                                              @PathVariable("categoryId") Integer categoryId,
+                                                              @PathVariable("transactionId") Integer transactionId,
+                                                              @RequestBody Transaction transaction){
+        int userId = (Integer) request.getAttribute("userId");
+        transactionService.update(userId,categoryId,transactionId, transaction);
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("success", true);
+        return new ResponseEntity<>(map, HttpStatus.OK);
     }
     @DeleteMapping("/{transactionId}")
     public ResponseEntity<Map<String, Boolean>> deleteTransaction(HttpServletRequest request,

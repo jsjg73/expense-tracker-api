@@ -400,7 +400,7 @@ class ExpenseTrackerApiApplicationTests {
 				.andExpect(jsonPath("$.note", is("shopping for new year")))
 				.andExpect(jsonPath("$.transactionDate", is(1577817000000L)));
 	}
-//	@Test
+	@Test
 	@Order(16)
 	@DisplayName("트랜잭션 수정 성공")
 	public void updateTransactionSuccess() throws Exception {
@@ -410,10 +410,28 @@ class ExpenseTrackerApiApplicationTests {
 						.header("Authorization", "Bearer "+token)
 						.accept(MediaType.APPLICATION_JSON)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"amount \": 15000, \"note\":\"update note\", \"transactionDate\":\"1577817000000\"}")
-		);
-		//TODO
-		fail();
+						.content("{\"amount\": 15000, \"note\":\"update note\", \"transactionDate\":\"1577817000000\"}")
+		).andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(handler().handlerType(TransactionsResource.class))
+				.andExpect(handler().methodName("updateTransaction"))
+				.andExpect(jsonPath("$.success", is(true)));
+
+		mockMvc.perform(
+						MockMvcRequestBuilders
+								.get("/api/categories/1/transactions/1000")
+								.header("Authorization", "Bearer "+token)
+								.accept(MediaType.APPLICATION_JSON)
+				).andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(handler().handlerType(TransactionsResource.class))
+				.andExpect(handler().methodName("getTransactionById"))
+				.andExpect(jsonPath("$.transactionId", is(1000)))
+				.andExpect(jsonPath("$.categoryId", is(1)))
+				.andExpect(jsonPath("$.userId", is(1)))
+				.andExpect(jsonPath("$.amount", is(15000.0)))
+				.andExpect(jsonPath("$.note", is("update note")))
+				.andExpect(jsonPath("$.transactionDate", is(1577817000000L)));
 	}
 //	@Test
 	@Order(17)

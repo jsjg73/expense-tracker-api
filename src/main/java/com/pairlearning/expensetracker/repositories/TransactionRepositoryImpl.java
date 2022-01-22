@@ -29,6 +29,13 @@ public class TransactionRepositoryImpl implements TransactionRepository{
             " FROM ET_TRANSACTIONS" +
             " WHERE CATEGORY_ID = ?" +
             " AND USER_ID = ?";
+    private static final String SQL_UPDATE = "UPDATE ET_TRANSACTIONS" +
+            " SET AMOUNT =?," +
+            " NOTE = ?," +
+            " TRANSACTION_DATE = ?" +
+            " WHERE TRANSACTION_ID = ?" +
+            " AND CATEGORY_ID = ?" +
+            " AND USER_ID = ?";
     @Autowired
     JdbcTemplate jdbcTemplate;
 
@@ -68,6 +75,23 @@ public class TransactionRepositoryImpl implements TransactionRepository{
             return jdbcTemplate.query(SQL_FIND_ALL, new Object[]{ categoryId, userId}, transactionRowMapper);
         }catch(Exception e){
             throw new EtResourceNotFoundException("Transaction not found");
+        }
+    }
+
+    @Override
+    public void update(int userId, int categoryId, int transactionId, Transaction transaction) throws EtBadRequestException {
+        try{
+            int affected = jdbcTemplate.update(SQL_UPDATE,
+                    new Object[]{transaction.getAmount(),
+                            transaction.getNote(),
+                            transaction.getTransactionDate(),
+                            transactionId,
+                            categoryId,
+                            userId});
+            if(affected==0)
+                throw new EtBadRequestException("this transaction doesn't exist");
+        }catch (Exception e){
+            throw new EtBadRequestException("Invalid request");
         }
     }
 

@@ -14,4 +14,5 @@ public interface TransactionRepository {
 
     List<Transaction> findAll(int userId, int categoryId)throws EtResourceNotFoundException;
 
+    void update(int userId, int categoryId, int transactionId, Transaction transaction) throws EtBadRequestException;
 }
