@@ -2,6 +2,7 @@ package com.pairlearning.expensetracker;
 
 import com.jayway.jsonpath.JsonPath;
 import com.pairlearning.expensetracker.exceptions.EtAuthException;
+import com.pairlearning.expensetracker.exceptions.EtBadRequestException;
 import com.pairlearning.expensetracker.exceptions.EtResourceNotFoundException;
 import com.pairlearning.expensetracker.resources.CategoryResource;
 import com.pairlearning.expensetracker.resources.UserResource;
@@ -278,14 +279,14 @@ class ExpenseTrackerApiApplicationTests {
 	public void updateCategoryFail1() throws Exception {
 		mockMvc.perform(
 				MockMvcRequestBuilders
-						.put("/api/categories/1")
+						.put("/api/categories/3")
 						.header("Authorization", "Bearer "+token)
 						.accept(MediaType.APPLICATION_JSON)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("{\"title\":\"update title\", \"description\": \"update description\"}")
 		).andExpect(status().is4xxClientError())
-				.andExpect(re->assertTrue(re.getResolvedException() instanceof EtResourceNotFoundException))
-				.andExpect(re->assertTrue(re.getResolvedException().getMessage().equals("invalid userid/categoryId")));
+				.andExpect(re->assertTrue(re.getResolvedException() instanceof EtBadRequestException))
+				.andExpect(re->assertTrue(re.getResolvedException().getMessage().equals("invalid request")));
 	}
 
 	@Test
@@ -302,11 +303,20 @@ class ExpenseTrackerApiApplicationTests {
 		).andExpect(status().isOk())
 		.andExpect(handler().handlerType(CategoryResource.class))
 		.andExpect(handler().methodName("updateCategory"))
-		.andExpect(jsonPath("$.userId", is(1)))
-		.andExpect(jsonPath("$.categoryId", is(1)))
-		.andExpect(jsonPath("$.title", is("update title")))
-		.andExpect(jsonPath("$.description", is("update description")))
-		.andExpect(jsonPath("$.totalExpense", is(0.0)));
+		.andExpect(jsonPath("$.success", is(true)));
 
+		mockMvc.perform(
+				MockMvcRequestBuilders
+						.get("/api/categories/1")
+						.header("Authorization", "Bearer "+token)
+						.accept(MediaType.APPLICATION_JSON)
+		).andExpect(status().isOk())
+				.andExpect(handler().handlerType(CategoryResource.class))
+				.andExpect(handler().methodName("getCategoryById"))
+				.andExpect(jsonPath("$.userId", is(1)))
+				.andExpect(jsonPath("$.categoryId", is(1)))
+				.andExpect(jsonPath("$.title", is("update title")))
+				.andExpect(jsonPath("$.description", is("update description")))
+				.andExpect(jsonPath("$.totalExpense", is(0.0)));
 	}
 }

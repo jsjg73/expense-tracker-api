@@ -21,7 +21,12 @@ public class CategoryRepositoryImpl implements CategoryRepository{
             "IFNULL(SUM(T.AMOUNT),0) TOTAL_EXPENSE " +
             "FROM ET_TRANSACTIONS T RIGHT OUTER JOIN ET_CATEGORIES C ON C.CATEGORY_ID = T.CATEGORY_ID " +
             "WHERE C.USER_ID = ? AND C.CATEGORY_ID = ? GROUP BY C.CATEGORY_ID";
-    private  static final String SQL_FIND_ALL = "SELECT USER_ID, CATEGORY_ID, TITLE, DESCRIPTION FROM ET_CATEGORIES WHERE USER_ID = ? ORDER BY CATEGORY_ID ";
+    private  static final String SQL_FIND_ALL = "SELECT C.CATEGORY_ID, C.USER_ID, C.TITLE, C.TITLE, C.DESCRIPTION, " +
+            "IFNULL(SUM(T.AMOUNT),0) TOTAL_EXPENSE " +
+            "FROM ET_TRANSACTIONS T RIGHT OUTER JOIN ET_CATEGORIES C ON C.CATEGORY_ID = T.CATEGORY_ID " +
+            "WHERE C.USER_ID = ? GROUP BY C.CATEGORY_ID";
+    private static final String SQL_UPDATE = "UPDATE ET_CATEGORIES SET TITLE = ?, DESCRIPTION = ? WHERE USER_ID =? AND CATEGORY_ID = ?";
+
     @Autowired
     JdbcTemplate jdbcTemplate;
     private RowMapper<Category> categoryRowMapper =(((rs, rowNum) -> {
@@ -31,17 +36,10 @@ public class CategoryRepositoryImpl implements CategoryRepository{
                 rs.getString("DESCRIPTION"),
                 rs.getDouble("TOTAL_EXPENSE"));
     })) ;
-    private RowMapper<Category> categoryAllRowMapper =(((rs, rowNum) -> {
-        return new Category(rs.getInt("CATEGORY_ID"),
-                rs.getInt("USER_ID"),
-                rs.getString("TITLE"),
-                rs.getString("DESCRIPTION"),
-                0.0);
-    })) ;
     @Override
     public List<Category> findAll(Integer userId) throws EtResourceNotFoundException {
         try{
-            return jdbcTemplate.query(SQL_FIND_ALL, new Object[]{userId},categoryAllRowMapper);
+            return jdbcTemplate.query(SQL_FIND_ALL, new Object[]{userId},categoryRowMapper);
         }catch (Exception e){
             e.printStackTrace();
             throw new EtResourceNotFoundException("Category not found");
@@ -76,7 +74,13 @@ public class CategoryRepositoryImpl implements CategoryRepository{
 
     @Override
     public void update(Integer userId, Integer categoryId, Category category) throws EtBadRequestException {
-
+        try {
+            int affected = jdbcTemplate.update(SQL_UPDATE, new Object[]{category.getTitle(), category.getDescription(), userId, categoryId});
+            if(affected==0)
+                throw new EtBadRequestException("invalid request");
+        }catch (Exception e){
+            throw new EtBadRequestException("invalid request");
+        }
     }
 
     @Override
