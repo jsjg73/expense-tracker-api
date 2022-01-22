@@ -31,8 +31,8 @@ public class TransactionsResource {
     public ResponseEntity<List<Transaction>> getAllTransactions(HttpServletRequest request,
                                                                 @PathVariable("categoryId") Integer categoryId){
         int userId = (Integer) request.getAttribute("userId");
-        //TODO
-        return null;
+
+        return new ResponseEntity<>(transactionService.fetchAllTransactions(userId, categoryId), HttpStatus.OK);
     }
 
     @GetMapping("/{transactionId}")

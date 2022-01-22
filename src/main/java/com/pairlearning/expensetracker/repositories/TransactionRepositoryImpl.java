@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
 
 @Repository
 public class TransactionRepositoryImpl implements TransactionRepository{
@@ -22,6 +23,11 @@ public class TransactionRepositoryImpl implements TransactionRepository{
             " FROM ET_TRANSACTIONS" +
             " WHERE TRANSACTION_ID =  ?" +
             " AND CATEGORY_ID = ?" +
+            " AND USER_ID = ?";
+    private static final String SQL_FIND_ALL=
+            "SELECT TRANSACTION_ID, CATEGORY_ID, USER_ID, AMOUNT, NOTE, TRANSACTION_DATE" +
+            " FROM ET_TRANSACTIONS" +
+            " WHERE CATEGORY_ID = ?" +
             " AND USER_ID = ?";
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -52,7 +58,16 @@ public class TransactionRepositoryImpl implements TransactionRepository{
         try{
             return jdbcTemplate.queryForObject(SQL_FIND_BY_ID, new Object[]{transactionId, categoryId, userId}, transactionRowMapper);
         }catch (Exception e){
-            throw new EtResourceNotFoundException("transaction not found");
+            throw new EtResourceNotFoundException("Transaction not found");
+        }
+    }
+
+    @Override
+    public List<Transaction> findAll(int userId, int categoryId) throws EtResourceNotFoundException {
+        try{
+            return jdbcTemplate.query(SQL_FIND_ALL, new Object[]{ categoryId, userId}, transactionRowMapper);
+        }catch(Exception e){
+            throw new EtResourceNotFoundException("Transaction not found");
         }
     }
 
