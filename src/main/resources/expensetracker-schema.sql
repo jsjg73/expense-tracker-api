@@ -29,3 +29,4 @@ transaction_date bigint not null,
 CONSTRAINT trans_cat_fk FOREIGN KEY (category_id) REFERENCES et_categories(category_id),
 CONSTRAINT trans_users_fk FOREIGN KEY (user_id) REFERENCES et_users(user_id)
 );
+ALTER TABLE et_transactions AUTO_INCREMENT=1000;

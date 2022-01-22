@@ -52,4 +52,11 @@ public class CategoryResource {
         map.put("success", true);
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
+
+    @DeleteMapping("/{categoryId}")
+    public  ResponseEntity<Map<String, Boolean>> updateCategoryWithAllTransactions(HttpServletRequest request ,
+                                                                                   @PathVariable("categoryId") Integer categoryId){
+        //TODO
+        return null;
+    }
 }

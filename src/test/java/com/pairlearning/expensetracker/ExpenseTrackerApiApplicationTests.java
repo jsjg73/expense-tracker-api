@@ -19,8 +19,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -318,5 +317,75 @@ class ExpenseTrackerApiApplicationTests {
 				.andExpect(jsonPath("$.title", is("update title")))
 				.andExpect(jsonPath("$.description", is("update description")))
 				.andExpect(jsonPath("$.totalExpense", is(0.0)));
+	}
+
+	@Test
+	@Order(13)
+	@DisplayName("트랜잭션 생성 성공")
+	public void createTransactionSuccess() throws Exception {
+		mockMvc.perform(
+				MockMvcRequestBuilders
+						.post("/api/categories/1/transactions")
+						.header("Authorization", "Bearer "+token)
+						.accept(MediaType.APPLICATION_JSON)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"amount \": 10000, \"note\":\"shopping for new year\", \"tansactionDate\":\"1577817000000\"}")
+		);
+		//TODO
+		fail();
+	}
+	@Test
+	@Order(14)
+	@DisplayName("트랜잭션 전체 조회 성공")
+	public void getAllTransactionsSuccess() throws Exception {
+		mockMvc.perform(
+				MockMvcRequestBuilders
+						.get("/api/categories/1/transactions")
+						.header("Authorization", "Bearer "+token)
+						.accept(MediaType.APPLICATION_JSON)
+		);
+		//TODO
+		fail();
+	}
+	@Test
+	@Order(15)
+	@DisplayName("트랜잭션 단일 조회 성공")
+	public void getTransactionSuccess() throws Exception {
+		mockMvc.perform(
+				MockMvcRequestBuilders
+						.get("/api/categories/1/transactions/1000")
+						.header("Authorization", "Bearer "+token)
+						.accept(MediaType.APPLICATION_JSON)
+		);
+		//TODO
+		fail();
+	}
+	@Test
+	@Order(16)
+	@DisplayName("트랜잭션 수정 성공")
+	public void updateTransactionSuccess() throws Exception {
+		mockMvc.perform(
+				MockMvcRequestBuilders
+						.put("/api/categories/1/transactions/1000")
+						.header("Authorization", "Bearer "+token)
+						.accept(MediaType.APPLICATION_JSON)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"amount \": 15000, \"note\":\"update note\", \"tansactionDate\":\"1577817000000\"}")
+		);
+		//TODO
+		fail();
+	}
+	@Test
+	@Order(17)
+	@DisplayName("트랜잭션 삭제 성공")
+	public void deleteTransactionSuccess() throws Exception {
+		mockMvc.perform(
+				MockMvcRequestBuilders
+						.delete("/api/categories/1/transactions/1000")
+						.header("Authorization", "Bearer "+token)
+						.accept(MediaType.APPLICATION_JSON)
+		);
+		//TODO
+		fail();
 	}
 }
