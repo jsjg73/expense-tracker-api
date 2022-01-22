@@ -380,7 +380,7 @@ class ExpenseTrackerApiApplicationTests {
 				.andExpect(jsonPath("$[1].transactionId",  is(1001)));
 
 	}
-//	@Test
+	@Test
 	@Order(15)
 	@DisplayName("트랜잭션 단일 조회 성공")
 	public void getTransactionSuccess() throws Exception {
@@ -389,9 +389,16 @@ class ExpenseTrackerApiApplicationTests {
 						.get("/api/categories/1/transactions/1000")
 						.header("Authorization", "Bearer "+token)
 						.accept(MediaType.APPLICATION_JSON)
-		);
-		//TODO
-		fail();
+		).andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(handler().handlerType(TransactionsResource.class))
+				.andExpect(handler().methodName("getTransactionById"))
+				.andExpect(jsonPath("$.transactionId", is(1000)))
+				.andExpect(jsonPath("$.categoryId", is(1)))
+				.andExpect(jsonPath("$.userId", is(1)))
+				.andExpect(jsonPath("$.amount", is(10000.0)))
+				.andExpect(jsonPath("$.note", is("shopping for new year")))
+				.andExpect(jsonPath("$.transactionDate", is(1577817000000L)));
 	}
 //	@Test
 	@Order(16)

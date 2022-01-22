@@ -9,4 +9,6 @@ public interface TransactionService {
     Transaction addTransaction(Integer userId, Integer categoryId, Transaction transaction);
 
     List<Transaction> fetchAllTransactions(int userId, int categoryId) throws EtResourceNotFoundException;
+
+    Transaction fetchTransactionById(int userId, int categoryId, int transactionId) throws EtResourceNotFoundException;
 }

@@ -40,8 +40,9 @@ public class TransactionsResource {
                                                             @PathVariable("categoryId") Integer categoryId,
                                                             @PathVariable("transactionId") Integer transactionId){
         int userId = (Integer) request.getAttribute("userId");
-        //TODO
-        return null;
+        return new ResponseEntity<>(
+                transactionService.fetchTransactionById(userId,categoryId,transactionId),
+                HttpStatus.OK);
     }
 
     @PutMapping("/{transactionId}")
