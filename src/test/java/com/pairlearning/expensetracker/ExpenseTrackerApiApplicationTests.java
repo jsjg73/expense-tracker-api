@@ -2,11 +2,10 @@ package com.pairlearning.expensetracker;
 
 import com.jayway.jsonpath.JsonPath;
 import com.pairlearning.expensetracker.exceptions.EtAuthException;
+import com.pairlearning.expensetracker.exceptions.EtResourceNotFoundException;
 import com.pairlearning.expensetracker.resources.CategoryResource;
 import com.pairlearning.expensetracker.resources.UserResource;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +16,7 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ExpenseTrackerApiApplicationTests {
 	static String token;
 
@@ -181,20 +182,131 @@ class ExpenseTrackerApiApplicationTests {
 
 	@Test
 	@Order(8)
-	@DisplayName("카테고리 조회 성공")
+	@DisplayName("카테고리 생성 성공")
+	public void addCategory() throws Exception {
+		ResultActions resultActions = mockMvc.perform(
+				MockMvcRequestBuilders
+						.post("/api/categories")
+						.accept(MediaType.APPLICATION_JSON)
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer "+token)
+						.content("{\"title\":\"Shopping\", \"description\": \"this is for recording all my shopping transactions\"}")
+
+		);
+		resultActions.andDo(print())
+				.andExpect(status().isCreated())
+				.andExpect(handler().handlerType(CategoryResource.class))
+				.andExpect(handler().methodName("addCategory"))
+				.andExpect(jsonPath("$.userId", is(1)))
+				.andExpect(jsonPath("$.categoryId", is(1)))
+				.andExpect(jsonPath("$.title", is("Shopping")))
+				.andExpect(jsonPath("$.description", is("this is for recording all my shopping transactions")))
+				.andExpect(jsonPath("$.totalExpense", is(0.0)));
+
+	}
+
+	@Test
+	@Order(9)
+	@DisplayName("카테고리 전체 조회 성공")
 	public void getAllCategories() throws Exception {
 		ResultActions resultActions = mockMvc.perform(
+				MockMvcRequestBuilders
+						.post("/api/categories")
+						.accept(MediaType.APPLICATION_JSON)
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer "+token)
+						.content("{\"title\":\"Other shopping\", \"description\": \"second shopping\"}")
+
+		);
+		resultActions.andDo(print())
+				.andExpect(status().isCreated())
+				.andExpect(handler().handlerType(CategoryResource.class))
+				.andExpect(handler().methodName("addCategory"))
+				.andExpect(jsonPath("$.userId", is(1)))
+				.andExpect(jsonPath("$.categoryId", is(2)))
+				.andExpect(jsonPath("$.title", is("Other shopping")))
+				.andExpect(jsonPath("$.description", is("second shopping")))
+				.andExpect(jsonPath("$.totalExpense", is(0.0)));
+
+		resultActions = mockMvc.perform(
 				MockMvcRequestBuilders
 						.get("/api/categories")
 						.accept(MediaType.APPLICATION_JSON)
 						.header("Authorization", "Bearer "+token)
 
 		);
-		MvcResult mvcResult = resultActions.andDo(print())
+		resultActions.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(handler().handlerType(CategoryResource.class))
 				.andExpect(handler().methodName("getAllCategories"))
-				.andReturn();
-		assertEquals(mvcResult.getResponse().getContentAsString(), "Authenticated! UserId 1");
+				.andExpect(jsonPath("$", hasSize(2)))
+				.andExpect(jsonPath("$[0].categoryId", is(1)))
+				.andExpect(jsonPath("$[0].userId", is(1)))
+				.andExpect(jsonPath("$[0].title", is("Shopping")))
+				.andExpect(jsonPath("$[0].description", is("this is for recording all my shopping transactions")))
+				.andExpect(jsonPath("$[1].categoryId", is(2)))
+				.andExpect(jsonPath("$[1].userId", is(1)))
+				.andExpect(jsonPath("$[1].title", is("Other shopping")))
+				.andExpect(jsonPath("$[1].description", is("second shopping")));
+	}
+
+	@Test
+	@Order(10)
+	@DisplayName("카테고리 단일 조회")
+	public void getCategoryByIDSuccess() throws Exception {
+
+		ResultActions resultActions = mockMvc.perform(
+				MockMvcRequestBuilders
+						.get("/api/categories/1")
+						.accept(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer "+token)
+		);
+		resultActions.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(handler().handlerType(CategoryResource.class))
+				.andExpect(handler().methodName("getCategoryById"))
+				.andExpect(jsonPath("$.userId", is(1)))
+				.andExpect(jsonPath("$.categoryId", is(1)))
+				.andExpect(jsonPath("$.title", is("Shopping")))
+				.andExpect(jsonPath("$.description", is("this is for recording all my shopping transactions")))
+				.andExpect(jsonPath("$.totalExpense", is(0.0)));
+	}
+
+	@Test
+	@Order(11)
+	@DisplayName("카테고리 수정 실패(잘못된 카테고리 ID)")
+	public void updateCategoryFail1() throws Exception {
+		mockMvc.perform(
+				MockMvcRequestBuilders
+						.put("/api/categories/1")
+						.header("Authorization", "Bearer "+token)
+						.accept(MediaType.APPLICATION_JSON)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"title\":\"update title\", \"description\": \"update description\"}")
+		).andExpect(status().is4xxClientError())
+				.andExpect(re->assertTrue(re.getResolvedException() instanceof EtResourceNotFoundException))
+				.andExpect(re->assertTrue(re.getResolvedException().getMessage().equals("invalid userid/categoryId")));
+	}
+
+	@Test
+	@Order(12)
+	@DisplayName("카테고리 수정 성공")
+	public void updateCategorySuccess() throws Exception {
+		mockMvc.perform(
+				MockMvcRequestBuilders
+						.put("/api/categories/1")
+						.header("Authorization", "Bearer "+token)
+						.accept(MediaType.APPLICATION_JSON)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"title\":\"update title\", \"description\": \"update description\"}")
+		).andExpect(status().isOk())
+		.andExpect(handler().handlerType(CategoryResource.class))
+		.andExpect(handler().methodName("updateCategory"))
+		.andExpect(jsonPath("$.userId", is(1)))
+		.andExpect(jsonPath("$.categoryId", is(1)))
+		.andExpect(jsonPath("$.title", is("update title")))
+		.andExpect(jsonPath("$.description", is("update description")))
+		.andExpect(jsonPath("$.totalExpense", is(0.0)));
+
 	}
 }
