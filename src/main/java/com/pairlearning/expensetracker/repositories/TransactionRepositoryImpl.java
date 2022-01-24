@@ -36,7 +36,7 @@ public class TransactionRepositoryImpl implements TransactionRepository{
             " WHERE TRANSACTION_ID = ?" +
             " AND CATEGORY_ID = ?" +
             " AND USER_ID = ?";
-    
+    private static final String SQL_DELETE = "DELETE FROM ET_TRANSACTIONS WHERE USER_ID = ? AND CATEGORY_ID = ? AND TRANSACTION_ID = ?";
     @Autowired
     JdbcTemplate jdbcTemplate;
 
@@ -94,6 +94,14 @@ public class TransactionRepositoryImpl implements TransactionRepository{
             throw new EtBadRequestException("Invalid request");
         }
     }
+
+    @Override
+    public void delete(Integer userId, Integer categoryId, Integer transactionId) throws EtResourceNotFoundException {
+        int count = jdbcTemplate.update(SQL_DELETE, new Object[]{userId, categoryId, transactionId});
+        if(count==0)
+            throw new EtResourceNotFoundException("Transaction not found");
+    }
+
 
     private RowMapper<Transaction> transactionRowMapper = ((rs,rowNum)->{
        return new Transaction(rs.getInt("TRANSACTION_ID"),

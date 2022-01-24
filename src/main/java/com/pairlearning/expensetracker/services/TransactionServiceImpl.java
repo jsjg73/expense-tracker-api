@@ -34,5 +34,10 @@ public class TransactionServiceImpl implements TransactionService{
         transactionRepository.update(userId, categoryId, transactionId, transaction);
     }
 
+    @Override
+    public void delete(Integer userId, Integer categoryId, Integer transactionId) throws EtResourceNotFoundException {
+        transactionRepository.delete(userId, categoryId, transactionId);
+    }
+
 
 }

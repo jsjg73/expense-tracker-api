@@ -435,6 +435,26 @@ class ExpenseTrackerApiApplicationTests {
 	}
 	@Test
 	@Order(17)
+	@DisplayName("트랜잭션 삭제 실패")
+	public void deleteTransactionFail() throws Exception {
+		mockMvc.perform(
+						MockMvcRequestBuilders
+								.delete("/api/categories/2/transactions/1000")
+								.header("Authorization", "Bearer " + token)
+								.accept(MediaType.APPLICATION_JSON)
+				).andDo(print())
+				.andExpect(status().is4xxClientError())
+				.andExpect(re->
+						assertTrue(re.getResolvedException() instanceof EtResourceNotFoundException)
+				)
+				.andExpect(re->
+						assertEquals("Transaction not found", re.getResolvedException().getMessage())
+				);
+
+
+	}
+	@Test
+	@Order(18)
 	@DisplayName("트랜잭션 삭제 성공")
 	public void deleteTransactionSuccess() throws Exception {
 		mockMvc.perform(
