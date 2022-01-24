@@ -81,6 +81,7 @@ class ExpenseTrackerApiApplicationTests {
 			.andReturn();
 
 		token = JsonPath.read(result.getResponse().getContentAsString(), "$.token");
+		System.out.println(token);
 	}
 
 	@Test
