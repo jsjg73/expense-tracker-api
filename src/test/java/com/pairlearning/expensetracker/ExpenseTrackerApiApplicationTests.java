@@ -490,6 +490,55 @@ class ExpenseTrackerApiApplicationTests {
 				.andExpect(jsonPath("$.success", is(true)));
 
 	}
+	@Test
+	@Order(19)
+	@DisplayName("카테고리 삭제 실패(잘못된 카테고리 ID)")
+	public void deleteCategoryWithAllTransactionsFail() throws Exception {
+		mockMvc.perform(
+						MockMvcRequestBuilders
+								.delete("/api/categories/33")
+								.header("Authorization", "Bearer "+token)
+								.accept(MediaType.APPLICATION_JSON)
+				).andDo(print())
+				.andExpect(status().is4xxClientError())
+				.andExpect(handler().handlerType(CategoryResource.class))
+				.andExpect(handler().methodName("deleteCategoryWithAllTransactions"))
+				.andExpect(re->
+						assertTrue(re.getResolvedException() instanceof EtResourceNotFoundException)
+				)
+				.andExpect(
+						re->assertEquals("Category not found", re.getResolvedException().getMessage())
+				);
+	}
+	@Test
+	@Order(20)
+	@DisplayName("카테고리 삭제 성공")
+	public void deleteCategoryWithAllTransactions() throws Exception {
+		mockMvc.perform(
+						MockMvcRequestBuilders
+								.delete("/api/categories/2")
+								.header("Authorization", "Bearer "+token)
+								.accept(MediaType.APPLICATION_JSON)
+				).andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(handler().handlerType(CategoryResource.class))
+				.andExpect(handler().methodName("deleteCategoryWithAllTransactions"))
+				.andExpect(jsonPath("$.success", is(true)));
 
-
+		mockMvc.perform(
+				MockMvcRequestBuilders
+						.get("/api/categories/2")
+						.accept(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer "+token)
+		).andDo(print())
+				.andExpect(status().is4xxClientError())
+				.andExpect(handler().handlerType(CategoryResource.class))
+				.andExpect(handler().methodName("getCategoryById"))
+				.andExpect(re->
+						assertTrue(re.getResolvedException() instanceof EtResourceNotFoundException)
+				)
+				.andExpect(
+						re->assertEquals("Category not found", re.getResolvedException().getMessage())
+				);
+	}
 }
