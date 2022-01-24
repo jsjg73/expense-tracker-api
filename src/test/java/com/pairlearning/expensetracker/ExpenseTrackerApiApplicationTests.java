@@ -272,7 +272,28 @@ class ExpenseTrackerApiApplicationTests {
 				.andExpect(jsonPath("$.description", is("this is for recording all my shopping transactions")))
 				.andExpect(jsonPath("$.totalExpense", is(0.0)));
 	}
+	@Test
+	@Order(10)
+	@DisplayName("카테고리 단일 조회 실패(잘못된 카테고리 Id)")
+	public void getCategoryByIDFail() throws Exception {
 
+		ResultActions resultActions = mockMvc.perform(
+				MockMvcRequestBuilders
+						.get("/api/categories/333")
+						.accept(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer "+token)
+		);
+		resultActions.andDo(print())
+				.andExpect(status().is4xxClientError())
+				.andExpect(handler().handlerType(CategoryResource.class))
+				.andExpect(handler().methodName("getCategoryById"))
+				.andExpect(re->
+						assertTrue(re.getResolvedException() instanceof EtResourceNotFoundException)
+				)
+				.andExpect(
+						re->assertEquals("Category not found", re.getResolvedException().getMessage())
+				);
+	}
 	@Test
 	@Order(11)
 	@DisplayName("카테고리 수정 실패(잘못된 카테고리 ID)")
@@ -469,4 +490,6 @@ class ExpenseTrackerApiApplicationTests {
 				.andExpect(jsonPath("$.success", is(true)));
 
 	}
+
+
 }
