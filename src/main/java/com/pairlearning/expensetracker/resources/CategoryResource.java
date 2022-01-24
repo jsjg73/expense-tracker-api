@@ -54,9 +54,12 @@ public class CategoryResource {
     }
 
     @DeleteMapping("/{categoryId}")
-    public  ResponseEntity<Map<String, Boolean>> updateCategoryWithAllTransactions(HttpServletRequest request ,
+    public  ResponseEntity<Map<String, Boolean>> deleteCategoryWithAllTransactions(HttpServletRequest request ,
                                                                                    @PathVariable("categoryId") Integer categoryId){
-        //TODO
-        return null;
+        int userId = (Integer) request.getAttribute("userId");
+        categoryService.removeCategoryWithAllTransactions(userId,categoryId);
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("success", true);
+        return new ResponseEntity<>(map, HttpStatus.OK);
     }
 }
