@@ -433,7 +433,7 @@ class ExpenseTrackerApiApplicationTests {
 				.andExpect(jsonPath("$.note", is("update note")))
 				.andExpect(jsonPath("$.transactionDate", is(1577817000000L)));
 	}
-//	@Test
+	@Test
 	@Order(17)
 	@DisplayName("트랜잭션 삭제 성공")
 	public void deleteTransactionSuccess() throws Exception {
@@ -442,8 +442,11 @@ class ExpenseTrackerApiApplicationTests {
 						.delete("/api/categories/1/transactions/1000")
 						.header("Authorization", "Bearer "+token)
 						.accept(MediaType.APPLICATION_JSON)
-		);
-		//TODO
-		fail();
+		).andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(handler().handlerType(TransactionsResource.class))
+				.andExpect(handler().methodName("deleteTransaction"))
+				.andExpect(jsonPath("$.success", is(true)));
+
 	}
 }

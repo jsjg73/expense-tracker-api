@@ -36,13 +36,13 @@ public class TransactionRepositoryImpl implements TransactionRepository{
             " WHERE TRANSACTION_ID = ?" +
             " AND CATEGORY_ID = ?" +
             " AND USER_ID = ?";
+    
     @Autowired
     JdbcTemplate jdbcTemplate;
 
     @Override
     public int create(Integer userId, Integer categoryId, Transaction transaction) {
         try{
-//            jdbcTemplate.update(SQL_CREATE, new Object[]{categoryId, userId, transaction.getAmount(), transaction.getNote(), transaction.getTransactionDate()},);
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(con->{
                 PreparedStatement ps = con.prepareStatement(SQL_CREATE, Statement.RETURN_GENERATED_KEYS);
